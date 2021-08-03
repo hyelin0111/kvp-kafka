@@ -1,0 +1,5 @@
+group = 'com.kvp.kafka-streams'
+
+dependencies {
+    implementation project(':kvp-domain')
+}

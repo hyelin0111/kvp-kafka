@@ -1,5 +1,6 @@
 package com.kvp.kafka.controller;
 
+import com.kvp.domain.Introduce;
 import com.kvp.kafka.producer.KvpTestProducer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +17,9 @@ public class KafkaController {
     }
 
     @GetMapping
-    public ResponseEntity send(String message) {
-        kvpTestProducer.send(message);
+    public ResponseEntity send(String name, Long age) {
+        Introduce introduce = new Introduce(name, age);
+        kvpTestProducer.send(introduce);
         return ResponseEntity.ok().build();
     }
 }
