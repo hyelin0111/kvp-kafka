@@ -7,16 +7,16 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class KvpTestProducer {
+public class IntroduceProducer {
     private static final String TOPIC = "kvp-input";
     private final KafkaTemplate<String, Introduce> kafkaTemplate;
 
-    public KvpTestProducer(KafkaTemplate<String, Introduce> kafkaTemplate) {
+    public IntroduceProducer(KafkaTemplate<String, Introduce> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
     public void send(Introduce introduce) {
-        log.info("produce message : {}", introduce);
+        log.info("produceIntroduce message : {}", introduce);
         kafkaTemplate.send(TOPIC, introduce);
     }
 }

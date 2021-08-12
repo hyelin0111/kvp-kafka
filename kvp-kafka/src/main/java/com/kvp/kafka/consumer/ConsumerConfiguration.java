@@ -1,7 +1,8 @@
 package com.kvp.kafka.consumer;
 
-import com.kvp.domain.AnonymousIntroduce;
+import com.kvp.domain.AnonymousProgrammer;
 import com.kvp.domain.Introduce;
+import com.kvp.domain.Programmer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +39,7 @@ public class ConsumerConfiguration {
     }
 
     @Bean
-    public ConsumerFactory<String, AnonymousIntroduce> anonymousIntroduceConsumerConfigs() {
+    public ConsumerFactory<String, Programmer> programmerConsumerConfigs() {
 
         Map<String, Object> configs = new HashMap<>();
         configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -48,13 +49,34 @@ public class ConsumerConfiguration {
         return new DefaultKafkaConsumerFactory<>(
                 configs,
                 new StringDeserializer(),
-                new JsonDeserializer<>(AnonymousIntroduce.class));
+                new JsonDeserializer<>(Programmer.class));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, AnonymousIntroduce> anonymousIntroduceListener() {
-        ConcurrentKafkaListenerContainerFactory<String, AnonymousIntroduce> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(anonymousIntroduceConsumerConfigs());
+    public ConcurrentKafkaListenerContainerFactory<String, Programmer> programmerListener() {
+        ConcurrentKafkaListenerContainerFactory<String, Programmer> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(programmerConsumerConfigs());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, AnonymousProgrammer> anonymousProgrammerConsumerConfigs() {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
+        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        return new DefaultKafkaConsumerFactory<>(
+                configs,
+                new StringDeserializer(),
+                new JsonDeserializer<>(AnonymousProgrammer.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AnonymousProgrammer> anonymousProgrammerListener() {
+        ConcurrentKafkaListenerContainerFactory<String, AnonymousProgrammer> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(anonymousProgrammerConsumerConfigs());
         return factory;
     }
 }
