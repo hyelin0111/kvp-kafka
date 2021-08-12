@@ -1,1 +1,7 @@
-http://localhost:8081/kafka?name=반선호&age=29
+http://localhost:8081/kafka?name=반선호&age=29&language=JAVA&year=4
+###
+http://localhost:8081/kafka?name=반선호&age=29&language=JAVA&year=2
+###
+http://localhost:8081/kafka?name=반선호&age=29&language=C&year=3
+###
+http://localhost:8081/kafka?name=반선호&age=29&language=C&year=4

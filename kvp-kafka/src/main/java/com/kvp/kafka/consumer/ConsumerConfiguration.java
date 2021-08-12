@@ -1,5 +1,6 @@
 package com.kvp.kafka.consumer;
 
+import com.kvp.domain.AnonymousIntroduce;
 import com.kvp.domain.Introduce;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -33,6 +34,27 @@ public class ConsumerConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, Introduce> introduceListener() {
         ConcurrentKafkaListenerContainerFactory<String, Introduce> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(introduceConsumerConfigs());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, AnonymousIntroduce> anonymousIntroduceConsumerConfigs() {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
+        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        return new DefaultKafkaConsumerFactory<>(
+                configs,
+                new StringDeserializer(),
+                new JsonDeserializer<>(AnonymousIntroduce.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AnonymousIntroduce> anonymousIntroduceListener() {
+        ConcurrentKafkaListenerContainerFactory<String, AnonymousIntroduce> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(anonymousIntroduceConsumerConfigs());
         return factory;
     }
 }
