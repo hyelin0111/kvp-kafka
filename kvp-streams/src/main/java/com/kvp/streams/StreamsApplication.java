@@ -10,6 +10,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.internals.InternalTopicConfig;
+
 import java.util.Properties;
 
 //https://coding-start.tistory.com/138
@@ -33,14 +35,14 @@ public class StreamsApplication {
         Serde<String> stringSerde = Serdes.String();
         IntroduceSerde introduceSerde = new IntroduceSerde();
 
-        KStream<String, Introduce> firstStream = streamsBuilder.stream("kvp-input", Consumed.with(stringSerde, introduceSerde));
-
-        firstStream.mapValues(
-                value->{
-                    value.addAge();
-                    return value;
-                }
-        );
+        KStream<String, Introduce> firstStream = streamsBuilder.stream("kvp-input", Consumed.with(stringSerde, introduceSerde))
+        .mapValues( value -> {
+            Introduce introduce = new Introduce();
+            introduce.setAge(value.getAge());
+            introduce.setName(value.getName());
+            introduce.addAge();
+            return introduce;
+        });
 
         firstStream.to("kvp-output", Produced.with(stringSerde, introduceSerde));
 
