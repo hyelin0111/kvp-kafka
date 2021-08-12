@@ -1,6 +1,7 @@
 package com.kvp.kafka.producer;
 
 import com.kvp.domain.Introduce;
+import com.kvp.domain.Programmer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,14 @@ import java.util.Map;
 
 //https://docs.spring.io/spring-kafka/docs/current/reference/html/#kafka-template
 @Configuration
-public class KafkaProducerConfiguration {
+public class ProducerConfiguration {
     @Bean
-    public ProducerFactory<String, Introduce> producerFactory() {
+    public ProducerFactory<String, Introduce> introduceProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
+    public ProducerFactory<String, Programmer> programmerProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
@@ -31,7 +37,14 @@ public class KafkaProducerConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, Introduce> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, Introduce> introduceKafkaTemplate() {
+        return new KafkaTemplate<>(introduceProducerFactory());
     }
+
+    @Bean
+    public KafkaTemplate<String, Programmer> programmerKafkaTemplate() {
+        return new KafkaTemplate<>(programmerProducerFactory());
+    }
+
+
 }

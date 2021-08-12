@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @ToString
 
-public class AnonymousIntroduce {
+public class AnonymousProgrammer {
     private Long age;
     private int year;
 }
