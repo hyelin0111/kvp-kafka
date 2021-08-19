@@ -7,3 +7,5 @@ http://localhost:8081/kafka/programmer?name=반선호&age=29&language=JAVA&year=
 http://localhost:8081/kafka/programmer?name=반선호&age=29&language=C&year=3
 ###
 http://localhost:8081/kafka/programmer?name=반선호&age=29&language=C&year=4
+###
+http://localhost:8081/kafka/purchase?name=반선호&price=5000

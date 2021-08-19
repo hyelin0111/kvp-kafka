@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class Programmer {
     private String name;
-    private Long age;
+    private int age;
     private ProgramLanguage language;
     private int year;
 

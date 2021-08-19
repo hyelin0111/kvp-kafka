@@ -2,6 +2,7 @@ package com.kvp.kafka.producer;
 
 import com.kvp.domain.Introduce;
 import com.kvp.domain.Programmer;
+import com.kvp.domain.Purchase;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,11 @@ public class ProducerConfiguration {
     }
 
     @Bean
+    public ProducerFactory<String, Purchase> purchaseProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -46,5 +52,9 @@ public class ProducerConfiguration {
         return new KafkaTemplate<>(programmerProducerFactory());
     }
 
+    @Bean
+    public KafkaTemplate<String, Purchase> purchaseKafkaTemplate() {
+        return new KafkaTemplate<>(purchaseProducerFactory());
+    }
 
 }

@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class Introduce {
     private String name;
-    private Long age;
+    private int age;
 
     public void addAge() {
         age += 10;

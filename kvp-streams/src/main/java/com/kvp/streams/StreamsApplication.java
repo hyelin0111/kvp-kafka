@@ -1,18 +1,19 @@
 package com.kvp.streams;
 
-import com.kvp.domain.AnonymousProgrammer;
-import com.kvp.domain.Introduce;
-import com.kvp.domain.ProgramLanguage;
-import com.kvp.domain.Programmer;
-import com.kvp.streams.serdes.AnonymousProgrammerSerde;
-import com.kvp.streams.serdes.IntroduceSerde;
-import com.kvp.streams.serdes.ProgrammerSerde;
+import com.kvp.domain.*;
+import com.kvp.domain.GradeAccumulator;
+import com.kvp.domain.Purchase;
+import com.kvp.streams.serdes.*;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -67,15 +68,42 @@ public class StreamsApplication {
         programmerStreamByYear[0].to("junior", Produced.with(stringSerde, programmerSerde));     // 주니어 개발자 싱크
         programmerStreamByYear[1].to("senior", Produced.with(stringSerde, programmerSerde));     // 시니어 개발자 싱크
 
-        programmerStreamByYear[1].filter((key, programmer) ->
-                Objects.equals(programmer.getLanguage(), ProgramLanguage.JAVA))
+        KStream<String, AnonymousProgrammer> isseniorJava =  programmerStreamByYear[1].filter((key, programmer) ->
+                        Objects.equals(programmer.getLanguage(), ProgramLanguage.JAVA))
+                //selectKey를 하고 mapValues, transformValues, flatMapValues 사용 시 자동으로 리파티셔닝
+                .selectKey((k,v) -> v.getName())
                 .mapValues(programmer -> {
                     AnonymousProgrammer anonymousProgrammer = new AnonymousProgrammer();
                     anonymousProgrammer.setAge(programmer.getAge());
                     anonymousProgrammer.setYear(programmer.getYear());
                     return anonymousProgrammer;
-                })
-                .to("senior-java", Produced.with(stringSerde, anonymousProgrammerSerde));       // 시니어 자바 개발자 싱크
+                });
+        isseniorJava.print(Printed.<String, AnonymousProgrammer>toSysOut().withLabel("seniorJavaStream"));
+        isseniorJava.to("senior-java", Produced.with(stringSerde, anonymousProgrammerSerde));       // 시니어 자바 개발자 싱크
+
+        /** step3
+         * 1. 소스 : purchase
+         * 2. 구매 금액 합계 별 등급
+         *   - 브론즈 : 10만원 이하
+         *   - 실버 : 10만원 초과 ~ 20만원 이하
+         *   - 골드 : 20만원 초과 ~ 50만원 이하
+         *   - 플래티넘 : 50만원 초과 ~ 100만원 이하
+         *   - VIP : 100만원 초과
+         */
+        PurchaseSerde purchaseSerde = new PurchaseSerde();
+        PurchaseGradeSerde purchaseGradeSerde = new PurchaseGradeSerde();
+        KStream<String, Purchase> purchaseKStream = streamsBuilder.stream("purchase", Consumed.with(stringSerde, purchaseSerde));
+        purchaseKStream.print(Printed.<String, Purchase>toSysOut().withLabel("purchaseStream"));
+
+        String gradeStateStoreName = "gradeStateStore";
+        KeyValueBytesStoreSupplier storeSupplier = Stores.inMemoryKeyValueStore(gradeStateStoreName); // StateStore 공급자 생성
+
+        StoreBuilder<KeyValueStore<String, Long>> storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), Serdes.Long());
+        streamsBuilder.addStateStore(storeBuilder); // 상태 저장소를 토폴로지에 추가
+
+        KStream<String, GradeAccumulator> statefulGradeAccumulator =
+                purchaseKStream.transformValues(() -> new PurchaseGradeTransformer(gradeStateStoreName), gradeStateStoreName);
+        statefulGradeAccumulator.to("grade", Produced.with(stringSerde, purchaseGradeSerde));
 
         KafkaStreams kafkaStreams = new KafkaStreams(streamsBuilder.build(), props);
         kafkaStreams.start();
