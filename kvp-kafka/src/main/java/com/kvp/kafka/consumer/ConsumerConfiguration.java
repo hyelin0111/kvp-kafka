@@ -1,8 +1,7 @@
 package com.kvp.kafka.consumer;
 
-import com.kvp.domain.AnonymousProgrammer;
-import com.kvp.domain.Introduce;
-import com.kvp.domain.Programmer;
+import com.kvp.domain.*;
+import com.kvp.domain.GradeAccumulator;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -77,6 +76,27 @@ public class ConsumerConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, AnonymousProgrammer> anonymousProgrammerListener() {
         ConcurrentKafkaListenerContainerFactory<String, AnonymousProgrammer> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(anonymousProgrammerConsumerConfigs());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, GradeAccumulator> gradeConsumerConfigs() {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
+        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        return new DefaultKafkaConsumerFactory<>(
+                configs,
+                new StringDeserializer(),
+                new JsonDeserializer<>(GradeAccumulator.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, GradeAccumulator> gradeListener() {
+        ConcurrentKafkaListenerContainerFactory<String, GradeAccumulator> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(gradeConsumerConfigs());
         return factory;
     }
 }

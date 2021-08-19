@@ -7,8 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
-public class AnonymousProgrammer {
-    private int age;
-    private int year;
+public class Purchase {
+    private String name;
+    private Long price;
 }
