@@ -2,6 +2,7 @@ package com.kvp.kafka.consumer;
 
 import com.kvp.domain.*;
 import com.kvp.domain.GradeAccumulator;
+import com.kvp.domain.step4.CommuteByEmp;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -16,16 +17,20 @@ import java.util.Map;
 
 @Configuration
 public class ConsumerConfiguration {
-    @Bean
-    public ConsumerFactory<String, Introduce> introduceConsumerConfigs() {
 
+    public static Map<String, Object> consumerConfigs() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
         configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
+        return configs;
+    }
+
+    @Bean
+    public ConsumerFactory<String, Introduce> introduceConsumerConfigs() {
         return new DefaultKafkaConsumerFactory<>(
-                configs,
+                consumerConfigs(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(Introduce.class));
     }
@@ -39,14 +44,8 @@ public class ConsumerConfiguration {
 
     @Bean
     public ConsumerFactory<String, Programmer> programmerConsumerConfigs() {
-
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
-        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
         return new DefaultKafkaConsumerFactory<>(
-                configs,
+                consumerConfigs(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(Programmer.class));
     }
@@ -60,14 +59,8 @@ public class ConsumerConfiguration {
 
     @Bean
     public ConsumerFactory<String, AnonymousProgrammer> anonymousProgrammerConsumerConfigs() {
-
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
-        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
         return new DefaultKafkaConsumerFactory<>(
-                configs,
+                consumerConfigs(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(AnonymousProgrammer.class));
     }
@@ -81,14 +74,8 @@ public class ConsumerConfiguration {
 
     @Bean
     public ConsumerFactory<String, GradeAccumulator> gradeConsumerConfigs() {
-
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "kvp");
-        configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
         return new DefaultKafkaConsumerFactory<>(
-                configs,
+                consumerConfigs(),
                 new StringDeserializer(),
                 new JsonDeserializer<>(GradeAccumulator.class));
     }
@@ -97,6 +84,21 @@ public class ConsumerConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, GradeAccumulator> gradeListener() {
         ConcurrentKafkaListenerContainerFactory<String, GradeAccumulator> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(gradeConsumerConfigs());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, CommuteByEmp> commuteConsumerConfigs() {
+        return new DefaultKafkaConsumerFactory<>(
+                consumerConfigs(),
+                new StringDeserializer(),
+                new JsonDeserializer<>(CommuteByEmp.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CommuteByEmp> commuteListener() {
+        ConcurrentKafkaListenerContainerFactory<String, CommuteByEmp> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(commuteConsumerConfigs());
         return factory;
     }
 }

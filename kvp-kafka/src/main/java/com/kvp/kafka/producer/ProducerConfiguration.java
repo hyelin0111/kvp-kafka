@@ -1,5 +1,6 @@
 package com.kvp.kafka.producer;
 
+import com.kvp.domain.step4.Commute;
 import com.kvp.domain.Introduce;
 import com.kvp.domain.Programmer;
 import com.kvp.domain.Purchase;
@@ -34,6 +35,11 @@ public class ProducerConfiguration {
     }
 
     @Bean
+    public ProducerFactory<String, Commute> commuteProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -55,6 +61,11 @@ public class ProducerConfiguration {
     @Bean
     public KafkaTemplate<String, Purchase> purchaseKafkaTemplate() {
         return new KafkaTemplate<>(purchaseProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, Commute> commuteKafkaTemplate() {
+        return new KafkaTemplate<>(commuteProducerFactory());
     }
 
 }
