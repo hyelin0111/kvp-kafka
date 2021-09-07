@@ -9,3 +9,7 @@ http://localhost:8081/kafka/programmer?name=반선호&age=29&language=C&year=3
 http://localhost:8081/kafka/programmer?name=반선호&age=29&language=C&year=4
 ###
 http://localhost:8081/kafka/purchase?name=반선호&price=5000
+###
+http://localhost:8081/kafka/commute?no=n1&name=김혜린&commuteType=출근&dateTime=2021-09-08 09:00:00
+###
+http://localhost:8081/kafka/commute?no=n1&name=김혜린&commuteType=퇴근&dateTime=2021-09-08 18:00:00

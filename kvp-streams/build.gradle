@@ -2,4 +2,5 @@ group = 'com.kvp.kafka-streams'
 
 dependencies {
     implementation project(':kvp-domain')
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.4'
 }

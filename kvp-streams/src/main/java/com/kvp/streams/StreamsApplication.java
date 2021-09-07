@@ -3,7 +3,12 @@ package com.kvp.streams;
 import com.kvp.domain.*;
 import com.kvp.domain.GradeAccumulator;
 import com.kvp.domain.Purchase;
+import com.kvp.domain.step4.Commute;
+import com.kvp.domain.step4.CommuteByEmp;
+import com.kvp.domain.step4.CommuteType;
 import com.kvp.streams.serdes.*;
+import com.kvp.streams.serdes.step4.CommuteByEmpSerde;
+import com.kvp.streams.serdes.step4.CommuteSerde;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -15,6 +20,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -106,6 +112,37 @@ public class StreamsApplication {
         KStream<String, GradeAccumulator> statefulGradeAccumulator =
                 purchaseKStream.transformValues(() -> new PurchaseGradeTransformer(gradeStateStoreName), gradeStateStoreName);
         statefulGradeAccumulator.to("grade", Produced.with(stringSerde, purchaseGradeSerde));
+
+        /** step4
+         * 1. 소스 : commute (사원번호, 이름, 출근/퇴근, 날짜+시간)
+         * 2. 출근 / 퇴근 기록
+         * 3. 근무 기록 (출근, 퇴근 기록 조인)
+         * 4. 초과 근무 기록 (초과 근무자 필터링)
+         */
+        CommuteSerde commuteSerde = new CommuteSerde();
+        CommuteByEmpSerde commuteByEmpSerde = new CommuteByEmpSerde();
+
+        KStream<String, Commute> commuteKStream = streamsBuilder.stream("commute", Consumed.with(stringSerde, commuteSerde));
+        commuteKStream.print(Printed.<String, Commute>toSysOut().withLabel("commuteStream"));
+
+        Predicate<String, Commute> goToWork = (key, commute) -> Objects.equals(commute.getCommuteType(), CommuteType.출근);
+        Predicate<String, Commute> getOffWork = (key, commute) -> Objects.equals(commute.getCommuteType(), CommuteType.퇴근);
+
+        KStream<String, Commute>[] branchesStream = commuteKStream.selectKey((key, value) -> value.getNo()).branch(goToWork, getOffWork);
+        KStream<String, Commute> startStream = branchesStream[0];
+        KStream<String, Commute> endStream = branchesStream[1];
+
+        ValueJoiner<Commute, Commute, CommuteByEmp> commuteJoiner = new CommuteJoiner();
+        JoinWindows twentyFourHoursWindow = JoinWindows.of(Duration.ofHours(24));
+
+        KStream<String, CommuteByEmp> joinedKStream = startStream.join(endStream,
+                commuteJoiner,
+                twentyFourHoursWindow,
+                StreamJoined.with(stringSerde, commuteSerde, commuteSerde));
+
+        joinedKStream.print(Printed.<String, CommuteByEmp>toSysOut().withLabel("joined CommuteStream"));
+
+        joinedKStream.to("commuteByEmp", Produced.with(stringSerde, commuteByEmpSerde));
 
         KafkaStreams kafkaStreams = new KafkaStreams(streamsBuilder.build(), props);
         kafkaStreams.start();
