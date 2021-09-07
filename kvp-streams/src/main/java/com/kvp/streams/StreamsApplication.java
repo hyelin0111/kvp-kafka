@@ -99,6 +99,8 @@ public class StreamsApplication {
         KeyValueBytesStoreSupplier storeSupplier = Stores.inMemoryKeyValueStore(gradeStateStoreName); // StateStore 공급자 생성
 
         StoreBuilder<KeyValueStore<String, Long>> storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), Serdes.Long());
+//                .withLoggingDisabled(); // 상태 저장소에 대한 변경로그를 저장하지 않기 위해 사용(사용 안하면 계속 누적)
+
         streamsBuilder.addStateStore(storeBuilder); // 상태 저장소를 토폴로지에 추가
 
         KStream<String, GradeAccumulator> statefulGradeAccumulator =
